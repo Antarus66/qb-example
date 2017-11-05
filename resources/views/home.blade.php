@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+
+<script>
+
+</script>
+
 <div class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
@@ -13,9 +18,8 @@
                             {{ session('status') }}
                         </div>
                     @endif
-
-                    You are logged in!
-                    Todo: add qb button
+                        {{-- todo: add image--}}
+                        <a href="{{ route('qb-authorization-request') }}">Connect to QB</a> 
                 </div>
             </div>
         </div>
