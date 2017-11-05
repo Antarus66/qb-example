@@ -21,4 +21,3 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 Route::get('/authorization-request', 'Auth\QuickbooksController@makeAuthorizationRequest')->name('qb-authorization-request');
 Route::get('/handle-authorization-code', 'Auth\QuickbooksController@handleAuthorizationCode')->name('qb-handle-authorization-code');
-Route::get('/handle-access-token', 'Auth\QuickbooksController@handleAccessToken')->name('qb-handle-access-token');

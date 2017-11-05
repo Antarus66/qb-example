@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 
 class QuickbooksController extends Controller
 {
@@ -20,61 +22,64 @@ class QuickbooksController extends Controller
 
     public function makeAuthorizationRequest()
     {
-        $appId = config('quickbooks.app_id');
-        $secret = config('quickbooks.secret');
-
         $client = config('quickbooks.client');
-        $httpsUrl = config('app.https_url');
 
-        $this->httpClient->get(
-            'https://appcenter.intuit.com/connect/oauth2', // todo: all the urls from config
-            [
-                'query' => [
-                    'client_id' => $client,
-                    'scope' => 'com.intuit.quickbooks.accounting',
-                    'redirect_uri' => $httpsUrl . '/handle-authorization-code', // todo: from helper
-                    'response_type' => 'code',
-                    'state' => csrf_token()
-                ]
-            ]
-        );
+        $queryData = [
+            'client_id' => $client,
+            'scope' => 'com.intuit.quickbooks.accounting',
+            'redirect_uri' => route('qb-handle-authorization-code'),
+            'response_type' => 'code',
+            'state' => csrf_token()
+        ];
+
+        $url = 'https://appcenter.intuit.com/connect/oauth2?'
+            . http_build_query($queryData, null, '&', PHP_QUERY_RFC1738);
+
+        $redirectResponse = Redirect::to($url);
+
+        return $redirectResponse;
     }
 
     public function handleAuthorizationCode(Request $request)
     {
-        // todo: add loggers
-
         $code = $request->get('code');
-        $realmId = $request->get('realmId');
-        $state = $request->get('state'); // todo: check the csrf token
-        $error = $request->get('error'); // todo: check error
+
+        // check state as csrf token
+        // realmId represents the company a user is connecting to
+
+        if ($request->has('error')) {
+            return $request->get('error');
+        }
 
         $client = config('quickbooks.client');
         $secret = config('quickbooks.secret');
-        $httpsUrl = config('app.https_url');
         $authorizationHeader = "Basic " . base64_encode($client . ":" . $secret);
 
-        $this->httpClient->post(
-            'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer',
-            [
-                'query' => [
-                    'code' => $code,
-                    'redirect_uri' => $httpsUrl . '/handle-access-token',
-                    'grant_type' => 'authorization_code' // OAuth 2.0 specification
-                ],
-                'headers' => [
-                    'Authorization' => $authorizationHeader
+        $url = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
+
+        try {
+            $jsonResponse = $this->httpClient->request(
+                'POST',
+                $url,
+                [
+                    'form_params' => [
+                        'code' => $code,
+                        'redirect_uri' => route('qb-handle-authorization-code'),
+                        'grant_type' => 'authorization_code' // OAuth 2.0 specification
+                    ],
+                    'headers' => [
+                        'Authorization' => $authorizationHeader
+                    ]
                 ]
-            ]
             );
-    }
+        } catch (\Exception $e) {
+            return view('home')->with(['error' => 'Authorization error']);
+        }
 
-    public function handleAccessToken(Request $request)
-    {
-        $data = $request->toArray();
+        $responseData = json_decode($jsonResponse->getBody());
 
-        // todo: add loggers
 
-        // todo: save keys
+
+        return $responseData;
     }
 }
