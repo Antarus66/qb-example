@@ -13,8 +13,13 @@
                             {{ session('status') }}
                         </div>
                     @endif
-                    {{-- todo: add image--}}
-                    <a href="{{ route('qb-authorization-request') }}">Connect to QB</a>
+
+                    @if ($hasAccessToken)
+                        QuickBooks is connected
+                    @else
+                        {{-- todo: add image--}}
+                        <a href="{{ route('qb-authorization-request') }}">Connect to QB</a>
+                    @endif
 
                     @isset($error)
                         <div class="alert alert-danger">{{ $error }}</div>

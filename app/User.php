@@ -24,6 +24,6 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'qb_access_token', 'qb_refresh_token', 'qb_refresh_token_updated_at'
     ];
 }

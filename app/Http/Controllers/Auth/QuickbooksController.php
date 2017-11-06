@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 
 class QuickbooksController extends Controller
@@ -55,7 +57,7 @@ class QuickbooksController extends Controller
         $secret = config('quickbooks.secret');
         $authorizationHeader = "Basic " . base64_encode($client . ":" . $secret);
 
-        $url = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
+        $url = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer'; // todo: get from config
 
         try {
             $jsonResponse = $this->httpClient->request(
@@ -78,8 +80,16 @@ class QuickbooksController extends Controller
 
         $responseData = json_decode($jsonResponse->getBody());
 
+        if (!isset($responseData->access_token) || !isset($responseData->refresh_token)) {
+            return view('home')->with(['error' => 'Authorization error']);
+        }
 
+        $user = Auth::user();
+        $user->qb_access_token = encrypt($responseData->access_token);
+        $user->qb_refresh_token = encrypt($responseData->refresh_token);
+        $user->qb_refresh_token_updated_at = Carbon::now();
+        $user->save();
 
-        return $responseData;
+        return redirect()->route('home');
     }
 }
