@@ -17,8 +17,9 @@
                     @if ($hasAccessToken)
                         QuickBooks is connected
                     @else
-                        {{-- todo: add image--}}
-                        <a href="{{ route('qb-authorization-request') }}">Connect to QB</a>
+                        <a href="{{ route('qb-authorization-request') }}">
+                            <img src="img/C2QB_green_btn_lg_default.png" alt="Connect to QB" style="width:292px;height:51px;border:0;">
+                        </a>
                     @endif
 
                     @isset($error)
