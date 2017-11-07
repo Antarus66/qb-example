@@ -103,14 +103,14 @@ class QuickbooksController extends Controller
             ]
         );
 
-        if ($res->getStatusCode() === 200) {
-            $user->qb_access_token = null;
-            $user->qb_refresh_token = null;
-            $user->qb_refresh_token_updated_at = null;
-            $user->save();
-        } else {
-            return redirect()->route('home')->with(['error' => 'Revocation error']);
+        if ($res->getStatusCode() !== 200) {
+            return redirect()->route('home')->with(['error' => 'Authorization error']);
         }
+
+        $user->qb_access_token = null;
+        $user->qb_refresh_token = null;
+        $user->qb_refresh_token_updated_at = null;
+        $user->save();
 
         return redirect()->route('home');
     }
