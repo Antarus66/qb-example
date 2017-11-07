@@ -85,10 +85,39 @@ class QuickbooksController extends Controller
         }
 
         $user = Auth::user();
-        $user->qb_access_token = encrypt($responseData->access_token);
+        $user->qb_access_token = encrypt($responseData->access_token); // encrypt your tokens
         $user->qb_refresh_token = encrypt($responseData->refresh_token);
         $user->qb_refresh_token_updated_at = Carbon::now();
         $user->save();
+
+        return redirect()->route('home');
+    }
+
+    public function revokeAccess()
+    {
+        $user = Auth::user();
+        $authorizationHeader = "Basic " . base64_encode(config('quickbooks.client') . ":" . config('quickbooks.secret'));
+
+        $res = $this->httpClient->request(
+            'POST',
+            'https://developer.api.intuit.com/v2/oauth2/tokens/revoke', // be careful here
+            [
+                'json' => [
+                    'token' => decrypt($user->qb_access_token)
+                ],
+                'headers' => [
+                    'Authorization' => $authorizationHeader
+                ],
+                'http_errors' => false
+            ]
+        );
+
+        if ($res->getStatusCode() === 200) {
+            $user->qb_access_token = null;
+            $user->qb_refresh_token = null;
+            $user->qb_refresh_token_updated_at = null;
+            $user->save();
+        }
 
         return redirect()->route('home');
     }

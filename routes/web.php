@@ -21,3 +21,4 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 Route::get('/authorization-request', 'Auth\QuickbooksController@makeAuthorizationRequest')->name('qb-authorization-request');
 Route::get('/handle-authorization-code', 'Auth\QuickbooksController@handleAuthorizationCode')->name('qb-handle-authorization-code');
+Route::get('/revoke-access', 'Auth\QuickbooksController@revokeAccess')->name('qb-revoke-access');
