@@ -10,24 +10,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 
+
 class QuickbooksController extends Controller
 {
     /**
      * @var Client
      */
     private $httpClient;
+    private $clientId;
+    private $secret;
 
     public function __construct(Client $httpClient) // todo: DI
     {
         $this->httpClient = $httpClient;
+        $this->clientId = config('quickbooks.client');
+        $this->secret = config('quickbooks.secret');
+
     }
 
     public function makeAuthorizationRequest()
     {
-        $client = config('quickbooks.client');
-
         $queryData = [
-            'client_id' => $client,
+            'client_id' => $this->clientId,
             'scope' => 'com.intuit.quickbooks.accounting',
             'redirect_uri' => route('qb-handle-authorization-code'),
             'response_type' => 'code',
@@ -50,35 +54,32 @@ class QuickbooksController extends Controller
         // realmId represents the company a user is connecting to
 
         if ($request->has('error')) {
-            return $request->get('error');
+            return view('home')->with(['error' => $request->get('error')]);
         }
 
-        $client = config('quickbooks.client');
-        $secret = config('quickbooks.secret');
-        $authorizationHeader = "Basic " . base64_encode($client . ":" . $secret);
+        $authorizationHeader = "Basic " . base64_encode($this->clientId . ":" . $this->secret);
 
-        $url = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer'; // todo: get from config
+        $res = $this->httpClient->request(
+            'POST',
+            'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer',
+            [
+                'form_params' => [
+                    'code' => $code,
+                    'redirect_uri' => route('qb-handle-authorization-code'),
+                    'grant_type' => 'authorization_code' // OAuth 2.0 specification
+                ],
+                'headers' => [
+                    'Authorization' => $authorizationHeader
+                ],
+                'http_errors' => false
+            ]
+        );
 
-        try {
-            $jsonResponse = $this->httpClient->request(
-                'POST',
-                $url,
-                [
-                    'form_params' => [
-                        'code' => $code,
-                        'redirect_uri' => route('qb-handle-authorization-code'),
-                        'grant_type' => 'authorization_code' // OAuth 2.0 specification
-                    ],
-                    'headers' => [
-                        'Authorization' => $authorizationHeader
-                    ]
-                ]
-            );
-        } catch (\Exception $e) {
+        if ($res->getStatusCode() !== 200) {
             return view('home')->with(['error' => 'Authorization error']);
         }
 
-        $responseData = json_decode($jsonResponse->getBody());
+        $responseData = json_decode($res->getBody());
 
         if (!isset($responseData->access_token) || !isset($responseData->refresh_token)) {
             return view('home')->with(['error' => 'Authorization error']);
@@ -96,7 +97,7 @@ class QuickbooksController extends Controller
     public function revokeAccess()
     {
         $user = Auth::user();
-        $authorizationHeader = "Basic " . base64_encode(config('quickbooks.client') . ":" . config('quickbooks.secret'));
+        $authorizationHeader = "Basic " . base64_encode($this->clientId . ":" . $this->secret);
 
         $res = $this->httpClient->request(
             'POST',
