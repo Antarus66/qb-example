@@ -51,13 +51,13 @@ class QuickbooksController extends Controller
             'POST',
             'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer',
             [
+                'headers' => [
+                    'Authorization' => $authorizationHeader
+                ],
                 'form_params' => [
                     'code' => $request->get('code'),
                     'redirect_uri' => route('qb-handle-authorization-code'), // the same
                     'grant_type' => 'authorization_code' // OAuth 2.0 specification
-                ],
-                'headers' => [
-                    'Authorization' => $authorizationHeader
                 ],
                 'http_errors' => false
             ]
@@ -93,11 +93,11 @@ class QuickbooksController extends Controller
             'POST',
             'https://developer.api.intuit.com/v2/oauth2/tokens/revoke', // be careful here with the documentation
             [
-                'json' => [
-                    'token' => decrypt($user->qb_access_token)
-                ],
                 'headers' => [
                     'Authorization' => $authorizationHeader
+                ],
+                'json' => [ // form_params also works
+                    'token' => decrypt($user->qb_access_token)
                 ],
                 'http_errors' => false
             ]
