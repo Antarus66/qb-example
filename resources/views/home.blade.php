@@ -25,9 +25,9 @@
                         </a>
                     @endif
 
-                    @isset($error)
-                        <div class="alert alert-danger">{{ $error }}</div>
-                    @endisset
+                    @if (session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @endif
                 </div>
             </div>
         </div>
