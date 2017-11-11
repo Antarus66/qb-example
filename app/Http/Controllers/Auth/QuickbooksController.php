@@ -37,7 +37,6 @@ class QuickbooksController extends Controller
     public function handleAuthorizationCode(Request $request)
     {
         // check 'state' as csrf token
-        // realmId represents the company a user is connecting to
 
         if ($request->has('error')) {
             return redirect()->route('home')->with(['error' => $request->get('error')]);
@@ -69,13 +68,10 @@ class QuickbooksController extends Controller
 
         $responseData = json_decode($res->getBody());
 
-        if (!isset($responseData->access_token) || !isset($responseData->refresh_token)) {
-            return redirect()->route('home')->with(['error' => 'Authorization error']);
-        }
-
         $user = Auth::user();
         $user->qb_access_token = encrypt($responseData->access_token); // encrypt your tokens
         $user->qb_refresh_token = encrypt($responseData->refresh_token);
+        $user->qb_realm_id = $request->get('realmId'); // represents the company a user is connecting to
         $user->qb_refresh_token_updated_at = Carbon::now(); // will be used for refresh_token exchange
         $user->save();
 
