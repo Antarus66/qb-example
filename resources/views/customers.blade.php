@@ -16,6 +16,7 @@
 
                         @foreach($customers as $customer)
                             <div>
+                                <strong>{{ $customer->Id }}.</strong>
                                 {{ $customer->GivenName }}
 
                                 @isset ($customer->FamilyName)
