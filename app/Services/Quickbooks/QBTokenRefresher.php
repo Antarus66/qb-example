@@ -2,27 +2,29 @@
 
 namespace App\Services\Quickbooks;
 
+use App\Services\Quickbooks\Contract\QBTokenRefresherInterface;
 use App\Services\Quickbooks\Exception\InvalidRefreshToken;
 use App\Services\Quickbooks\Exception\NotConnectedToACompany;
+use App\User;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Facades\Auth;
 
-class TokenRefresher
+class QBTokenRefresher implements QBTokenRefresherInterface
 {
     /**
-     * @var Client
+     * @var ClientInterface
      */
     private $httpClient;
 
-    public function __construct(Client $httpClient) // todo: DI
+    public function __construct(ClientInterface $httpClient) // todo: DI
     {
         $this->httpClient = $httpClient;
     }
 
     public function refreshAccessToken() : string
     {
-        $user = Auth::user();
+        $user = User::find(Auth::id());
 
         if (!isset($user->qb_refresh_token)) {
             throw new NotConnectedToACompany();
@@ -61,18 +63,19 @@ class TokenRefresher
         return "Basic " . base64_encode(config('quickbooks.client') . ":" . config('quickbooks.secret'));
     }
 
-    protected function saveTokens($accessToken, $refreshToken) : TokenRefresher
+    protected function saveTokens($accessToken, $refreshToken) : QBTokenRefresher
     {
         $user = Auth::user();
 
         $user->qb_access_token = encrypt($accessToken); // encrypt your tokens
         $user->qb_refresh_token = encrypt($refreshToken);
         $user->qb_refresh_token_updated_at = Carbon::now(); // will be used for refresh_token exchange
+        $user->save();
 
         return $this;
     }
 
-    protected function resetTokens() : TokenRefresher
+    protected function resetTokens() : QBTokenRefresher
     {
         $user = Auth::user();
 

@@ -168,6 +168,8 @@ return [
         /*
          * Package Service Providers...
          */
+        App\Providers\HttpClientServiceProvider::class,
+        App\Providers\QuickbooksServiceProvider::class,
 
         /*
          * Application Service Providers...

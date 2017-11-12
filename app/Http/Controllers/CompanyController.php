@@ -2,24 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Quickbooks\TokenRefresher;
-use Carbon\Carbon;
-use GuzzleHttp\Client;
-use Illuminate\Http\Request;
+use App\Services\Quickbooks\Contract\QBTokenRefresherInterface;
+use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Facades\Auth;
 
 class CompanyController extends Controller
 {
     /**
-     * @var Client
+     * @var ClientInterface
      */
     private $httpClient;
     /**
-     * @var TokenRefresher
+     * @var QBTokenRefresherInterface
      */
     private $tokenRefresher;
 
-    public function __construct(Client $httpClient, TokenRefresher $tokenRefresher) // todo: DI
+    public function __construct(ClientInterface $httpClient, QBTokenRefresherInterface $tokenRefresher)
     {
         $this->httpClient = $httpClient;
         $this->tokenRefresher = $tokenRefresher;
