@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class HomeController extends Controller
+class ConnectController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -27,6 +27,6 @@ class HomeController extends Controller
         $user = Auth::user();
         $hasAccessToken = (bool) $user->qb_access_token;
 
-        return view('home')->with(['hasAccessToken' => $hasAccessToken]);
+        return view('connect')->with(['hasAccessToken' => $hasAccessToken]);
     }
 }

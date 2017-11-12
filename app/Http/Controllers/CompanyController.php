@@ -24,7 +24,7 @@ class CompanyController extends Controller
         $user = Auth::user();
 
         if (!$user->qb_refresh_token) {
-            return redirect()->route('home');
+            return redirect()->route('connect');
         }
 
         $res = $this->httpClient->get(
@@ -70,7 +70,7 @@ class CompanyController extends Controller
                 $user->qb_refresh_token_updated_at = null;
                 $user->save();
 
-                return redirect()->route('home')->with(['error' => 'Authorization error']);
+                return redirect()->route('connect')->with(['error' => 'Authorization error']);
             }
 
             // save new access token

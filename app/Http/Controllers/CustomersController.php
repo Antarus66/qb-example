@@ -68,7 +68,7 @@ class CustomersController extends Controller
                 $user->qb_refresh_token_updated_at = null;
                 $user->save();
 
-                return redirect()->route('home')->with(['error' => 'Authorization error']);
+                return redirect()->route('connect')->with(['error' => 'Authorization error']);
             }
 
             // save new access token

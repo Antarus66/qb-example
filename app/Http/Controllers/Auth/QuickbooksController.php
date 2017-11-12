@@ -39,7 +39,7 @@ class QuickbooksController extends Controller
         // check 'state' as csrf token
 
         if ($request->has('error')) {
-            return redirect()->route('home')->with(['error' => $request->get('error')]);
+            return redirect()->route('connect')->with(['error' => $request->get('error')]);
         }
 
         $authorizationHeader = "Basic " . base64_encode(
@@ -63,7 +63,7 @@ class QuickbooksController extends Controller
         );
 
         if ($res->getStatusCode() !== 200) {
-            return redirect()->route('home')->with(['error' => 'Authorization error']);
+            return redirect()->route('connect')->with(['error' => 'Authorization error']);
         }
 
         $responseData = json_decode($res->getBody());
@@ -75,7 +75,7 @@ class QuickbooksController extends Controller
         $user->qb_refresh_token_updated_at = Carbon::now(); // will be used for refresh_token exchange
         $user->save();
 
-        return redirect()->route('home');
+        return redirect()->route('connect');
     }
 
     public function revokeAccess()
@@ -100,7 +100,7 @@ class QuickbooksController extends Controller
         );
 
         if ($res->getStatusCode() !== 200) {
-            return redirect()->route('home')->with(['error' => 'Authorization error']);
+            return redirect()->route('connect')->with(['error' => 'Authorization error']);
         }
 
         $user->qb_access_token = null;
@@ -108,6 +108,6 @@ class QuickbooksController extends Controller
         $user->qb_refresh_token_updated_at = null;
         $user->save();
 
-        return redirect()->route('home');
+        return redirect()->route('connect');
     }
 }
